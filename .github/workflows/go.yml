@@ -1,0 +1,34 @@
+name: Unpack and build
+on:
+  push:
+permissions:
+  contents: write
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack zip
+        run: |
+          unzip -o ./*.zip -d /tmp/proj
+          rm -rf /tmp/proj/FloatTeleprompter/.github
+          cp -r /tmp/proj/FloatTeleprompter/. .
+          rm -f ./*.zip
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Unpack Float Teleprompter project"
+          git push
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.7
+      - run: gradle assembleDebug --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Float-Teleprompter-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
